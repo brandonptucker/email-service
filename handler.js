@@ -1,14 +1,37 @@
-'use strict';
+const AWS = require('aws-sdk');
 
-module.exports.sendEmail = async (event, context) => {
+const ses = new AWS.SES();
+
+function createEmail(body) {
+  const { myEmail, email, subject, message } = JSON.parse(body);
+
   return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: 'Go Serverless v1.0! Your function executed successfully!',
-      input: event,
-    }),
+    Source: myEmail,
+    ReplyToAddresses: [email],
+    Destination: {
+      ToAddresses: [myEmail],
+    },
+    Message: {
+      Subject: {
+        Charset: 'UTF-8',
+        Data: subject,
+      },
+      Body: {
+        Text: {
+          Charset: 'UTF-8',
+          Data: message,
+        },
+      },
+    },
   };
+}
 
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
+module.exports.sendEmail = async event => {
+  try {
+    const email = createEmail(event.body);
+    await ses.sendEmail(email).promise();
+    return { statusCode: 200 };
+  } catch (e) {
+    return { statusCode: e.statusCode || 500 };
+  }
 };
