@@ -27,11 +27,18 @@ function createEmail(body) {
 }
 
 module.exports.sendEmail = async event => {
+  const response = {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+  };
   try {
     const email = createEmail(event.body);
     await ses.sendEmail(email).promise();
-    return { statusCode: 200 };
+    response.statusCode = 200;
+    return response;
   } catch (e) {
-    return { statusCode: e.statusCode || 500 };
+    response.statusCode = e.statusCode || 500;
+    return response;
   }
 };
