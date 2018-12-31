@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "handler.js",
   "scripts": {
-    "dev": "serverless offline start"
+    "dev": "serverless offline start",
+    "deploy": "serverless deploy --stage production"
   },
   "devDependencies": {
     "eslint": "^5.11.1",
