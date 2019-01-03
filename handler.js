@@ -26,19 +26,36 @@ function createEmail(body) {
   };
 }
 
-module.exports.sendEmail = async event => {
-  const response = {
+function createResponse(statusCode) {
+  return {
+    statusCode,
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
   };
+}
+
+function originValid(origin, stage) {
+  const validOrigins = [
+    'https://albanyrvresort.com',
+    'https://www.albanyrvresort.com',
+    ...(stage === 'dev' ? ['http://localhost:3000'] : []),
+  ];
+  return validOrigins.includes(origin);
+}
+
+module.exports.sendEmail = async event => {
+  const { origin } = event.headers;
+  const { stage } = event.requestContext;
+  if (!originValid(origin, stage)) {
+    return createResponse(403);
+  }
+
   try {
     const email = createEmail(event.body);
     await ses.sendEmail(email).promise();
-    response.statusCode = 200;
-    return response;
+    return createResponse(200);
   } catch (e) {
-    response.statusCode = e.statusCode || 500;
-    return response;
+    return createResponse(e.statusCode || 500);
   }
 };
