@@ -1,11 +1,11 @@
-import AWS from 'aws-sdk';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
-const ses = new AWS.SES();
+const sesClient = new SESClient({ region: 'us-east-1' });
 
-function createEmail(body) {
+function createEmailCommand(body) {
   const { myEmail, email, subject, message } = JSON.parse(body);
 
-  return {
+  return new SendEmailCommand({
     Source: myEmail,
     ReplyToAddresses: [email],
     Destination: {
@@ -23,7 +23,7 @@ function createEmail(body) {
         },
       },
     },
-  };
+  });
 }
 
 function createResponse(statusCode) {
@@ -53,9 +53,9 @@ export async function sendEmail(event) {
   }
 
   try {
-    const email = createEmail(event.body);
+    const emailCommand = createEmailCommand(event.body);
 
-    await ses.sendEmail(email).promise();
+    await sesClient.send(emailCommand);
 
     return createResponse(200);
   } catch (e) {
