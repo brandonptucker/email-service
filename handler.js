@@ -1,6 +1,6 @@
-import { SES } from 'aws-sdk';
+import AWS from 'aws-sdk';
 
-const ses = new SES();
+const ses = new AWS.SES();
 
 function createEmail(body) {
   const { myEmail, email, subject, message } = JSON.parse(body);
