@@ -35,11 +35,11 @@ function createResponse(statusCode) {
   };
 }
 
-function originValid(origin, stage) {
+function originValid(origin) {
   const validOrigins = [
     'https://albanyrvresort.com',
     'https://www.albanyrvresort.com',
-    ...(stage === 'dev' ? ['http://localhost:3000'] : []),
+    ...(process.env.IS_OFFLINE ? ['http://localhost:3000'] : []),
   ];
 
   return validOrigins.includes(origin);
@@ -47,9 +47,8 @@ function originValid(origin, stage) {
 
 export async function sendEmail(event) {
   const { origin } = event.headers;
-  const { stage } = event.requestContext;
 
-  if (!originValid(origin, stage)) {
+  if (!originValid(origin)) {
     return createResponse(403);
   }
 
