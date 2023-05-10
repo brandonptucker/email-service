@@ -1,6 +1,6 @@
-const AWS = require('aws-sdk');
+import { SES } from 'aws-sdk';
 
-const ses = new AWS.SES();
+const ses = new SES();
 
 function createEmail(body) {
   const { myEmail, email, subject, message } = JSON.parse(body);
@@ -45,7 +45,7 @@ function originValid(origin, stage) {
   return validOrigins.includes(origin);
 }
 
-module.exports.sendEmail = async (event) => {
+export async function sendEmail(event) {
   const { origin } = event.headers;
   const { stage } = event.requestContext;
 
@@ -62,4 +62,4 @@ module.exports.sendEmail = async (event) => {
   } catch (e) {
     return createResponse(e.statusCode || 500);
   }
-};
+}
