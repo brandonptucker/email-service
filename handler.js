@@ -1,11 +1,11 @@
-const AWS = require('aws-sdk');
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
-const ses = new AWS.SES();
+const sesClient = new SESClient({ region: 'us-east-1' });
 
-function createEmail(body) {
+function createEmailCommand(body) {
   const { myEmail, email, subject, message } = JSON.parse(body);
 
-  return {
+  return new SendEmailCommand({
     Source: myEmail,
     ReplyToAddresses: [email],
     Destination: {
@@ -23,7 +23,7 @@ function createEmail(body) {
         },
       },
     },
-  };
+  });
 }
 
 function createResponse(statusCode) {
@@ -35,27 +35,30 @@ function createResponse(statusCode) {
   };
 }
 
-function originValid(origin, stage) {
+function originValid(origin) {
   const validOrigins = [
     'https://albanyrvresort.com',
     'https://www.albanyrvresort.com',
-    ...(stage === 'dev' ? ['http://localhost:3000'] : []),
+    ...(process.env.IS_OFFLINE ? ['http://localhost:3000'] : []),
   ];
+
   return validOrigins.includes(origin);
 }
 
-module.exports.sendEmail = async event => {
+export async function sendEmail(event) {
   const { origin } = event.headers;
-  const { stage } = event.requestContext;
-  if (!originValid(origin, stage)) {
+
+  if (!originValid(origin)) {
     return createResponse(403);
   }
 
   try {
-    const email = createEmail(event.body);
-    await ses.sendEmail(email).promise();
+    const emailCommand = createEmailCommand(event.body);
+
+    await sesClient.send(emailCommand);
+
     return createResponse(200);
   } catch (e) {
     return createResponse(e.statusCode || 500);
   }
-};
+}
